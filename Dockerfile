@@ -8,7 +8,6 @@ ARG NODE_ENV=development
 ENV NODE_ENV $NODE_ENV
 
 WORKDIR /app
-ADD docker/.npmrc .npmrc
 
 ADD package.json .
 ADD package-lock.json .
