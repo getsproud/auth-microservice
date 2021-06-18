@@ -20,9 +20,6 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Set Tag
-      run: echo "GIT_TAG=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-
     - name: Set up Docker Buildx
       id: buildx
       uses: docker/setup-buildx-action@master
@@ -55,15 +52,12 @@ jobs:
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache
 
-    - name: Move cache
-      run: |
-        rm -rf /tmp/.buildx-cache
-        mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
     - name: Deploy to Cluster
-      uses: danielr1996/kubectl-action@1.0.0
+      uses: steebchen/kubectl@master
+      env:
+        KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA_PROD }}
+        KUBECTL_VERSION: "1.20"
       with:
-        kubeconfig: ${{ secrets.KUBE_CONFIG_DATA_PROD }}
         args: |
           set image --record deployment/${{ env.IMAGE }}-app \
           ${{ env.IMAGE }}-service=ghcr.io/getsproud/${{ env.IMAGE }}:latest \
@@ -78,7 +72,7 @@ jobs:
       env:
         SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         SLACK_ICON: https://avatars.slack-edge.com/2021-06-14/2168279331762_d05933b7090308e2869b_102.png
-        SLACK_CHANNEL: releases-stage
+        SLACK_CHANNEL: releases-prod
         SLACK_USERNAME: sproud.bot
         SLACK_COLOR: ${{ job.status }}
         SLACK_MESSAGE: ${{ steps.log.outputs.message }}
